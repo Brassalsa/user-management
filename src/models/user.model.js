@@ -14,15 +14,17 @@ const userSchema = new Schema(
     },
     email: {
       type: String,
-      required: true,
       unique: true,
       lowecase: true,
       trim: true,
     },
+    phone: {
+      type: String,
+      unique: true,
+    },
     avatar: {
       type: String, // url
     },
-
     password: {
       type: String,
       required: [true, "Password is required"],
@@ -36,6 +38,22 @@ const userSchema = new Schema(
     timestamps: true,
   }
 );
+
+userSchema.path("phone").validate(function (phone) {
+  if (this.email || phone) {
+    return true;
+  } else {
+    return false;
+  }
+}, "At least one contact detail (phone or email) is required.");
+
+userSchema.path("email").validate(function (email) {
+  if (this.phone || email) {
+    return true;
+  } else {
+    return false;
+  }
+}, "At least one contact detail (phone or email) is required.");
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
