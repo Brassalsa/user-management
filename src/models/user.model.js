@@ -7,8 +7,6 @@ const userSchema = new Schema(
     name: {
       type: String,
       required: true,
-      unique: true,
-      lowercase: true,
       trim: true,
       index: true,
     },
@@ -39,22 +37,6 @@ const userSchema = new Schema(
   }
 );
 
-userSchema.path("phone").validate(function (phone) {
-  if (this.email || phone) {
-    return true;
-  } else {
-    return false;
-  }
-}, "At least one contact detail (phone or email) is required.");
-
-userSchema.path("email").validate(function (email) {
-  if (this.phone || email) {
-    return true;
-  } else {
-    return false;
-  }
-}, "At least one contact detail (phone or email) is required.");
-
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
@@ -70,7 +52,6 @@ userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
       _id: this._id,
-      email: this.email,
       name: this.name,
     },
     process.env.ACCESS_TOKEN_SECRET,
