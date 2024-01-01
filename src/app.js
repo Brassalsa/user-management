@@ -2,9 +2,6 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
-import userRouter from "./routes/user.route.js";
-import adminRouter from "./routes/admin.route.js";
-
 const app = express();
 
 app.use(
@@ -20,7 +17,8 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 //routes import
-
+import userRouter from "./routes/user.route.js";
+import adminRouter from "./routes/admin.route.js";
 //routes declaration
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/admin", adminRouter);
