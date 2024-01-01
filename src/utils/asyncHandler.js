@@ -5,7 +5,7 @@ const asyncHandler = (fn) => async (req, res, next) => {
     if (req.errCb) {
       req.errCb();
     }
-
+    console.log(err);
     res.status(+err.statusCode || 500).json({
       success: false,
       code: err.code,
