@@ -5,6 +5,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { isEmailFormatCorrect } from "../utils/validation.js";
+import deleteImage from "../utils/deleteImage.js";
 
 // generate access token
 const generateAccessTokens = async (userId) => {
@@ -36,11 +37,7 @@ const registerUser = asyncHandler(async (req, res) => {
   // delete file if error occured
   req.errCb = () => {
     if (!avatarUrl) return;
-    try {
-      fs.unlinkSync(avatarUrl);
-    } catch (err) {
-      console.log("Failed to delete previous profile image ", err);
-    }
+    deleteImage(avatarUrl);
   };
 
   // validate required fields
@@ -85,7 +82,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
   res
     .status(201)
-    .json(new ApiResponse(200, user, "User registered Successfully"));
+    .json(new ApiResponse(200, { user }, "User registered Successfully"));
 });
 
 // login
@@ -126,6 +123,14 @@ const loginUser = asyncHandler(async (req, res) => {
       token,
     })
   );
+});
+
+// get account details
+const getAccountDetails = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  const user = await User.findById(_id).select("-password");
+
+  res.status(200).json(new ApiResponse(200, { user }));
 });
 
 // update account details
@@ -173,11 +178,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
   // delete previous profile image
   if (prevAvatar) {
-    try {
-      fs.unlinkSync(prevAvatar);
-    } catch (err) {
-      console.log("Failed to delete previous profile image ", err);
-    }
+    deleteImage(prevAvatar);
   }
 
   res
@@ -191,5 +192,63 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     );
 });
 
+// change current password
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  // validate fields
+  if ([oldPassword, newPassword].some((i) => !i || i.trim() == "")) {
+    throw new ApiError(400, "All fields are required.");
+  }
+  // get a user
+  const user = await User.findById(req.user?._id);
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "Invalid old password");
+  }
+  user.password = newPassword;
+  await user.save({
+    validateBeforeSave: false,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password changed successfully"));
+});
+
+// delete account
+const deleteAccount = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  // password is required for account delete
+  const { password } = req.body;
+  if (!password || password.trim() == "") {
+    throw new ApiError(400, "Password is required");
+  }
+
+  // get user by id
+  const user = await User.findById(_id);
+  const avatar = user.avatar;
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  const isPasswordCorrect = await user.isPasswordCorrect(password);
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "Incorrect Password");
+  }
+
+  await user.deleteOne();
+  deleteImage(avatar);
+  res.status(200).json(new ApiResponse(200, {}, "User deleted successfully"));
+});
+
 // exports
-export { generateAccessTokens, registerUser, loginUser, updateAccountDetails };
+export {
+  generateAccessTokens,
+  registerUser,
+  loginUser,
+  getAccountDetails,
+  updateAccountDetails,
+  changeCurrentPassword,
+  deleteAccount,
+};

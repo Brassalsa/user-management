@@ -1,5 +1,8 @@
 import { Router } from "express";
 import {
+  changeCurrentPassword,
+  deleteAccount,
+  getAccountDetails,
   loginUser,
   registerUser,
   updateAccountDetails,
@@ -24,7 +27,12 @@ userRouter.post(
 // login
 userRouter.post("/login", loginUser);
 
-// update
+// protected routes :
+
+// get account details
+userRouter.get("/account", verifyJWT, getAccountDetails);
+
+// update account
 userRouter.put(
   "/account",
   verifyJWT,
@@ -36,5 +44,11 @@ userRouter.put(
   ]),
   updateAccountDetails
 );
+
+// change password
+userRouter.post("/account/change-password", verifyJWT, changeCurrentPassword);
+
+// delete account
+userRouter.delete("/account", verifyJWT, deleteAccount);
 
 export default userRouter;
