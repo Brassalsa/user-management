@@ -12,14 +12,16 @@ const userSchema = new Schema(
     email: {
       type: String,
       unique: true,
+      index: true,
       lowecase: true,
       trim: true,
-      index: true,
+      sparse: true,
     },
     phone: {
       type: String,
       unique: true,
       index: true,
+      sparse: true,
     },
     avatar: {
       type: String, // url
