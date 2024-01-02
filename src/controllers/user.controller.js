@@ -1,5 +1,3 @@
-import fs from "fs";
-
 import { User } from "../models/user.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -56,14 +54,21 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   // check if user exists wtih same phone or email
+  let query = [];
+  if (email) {
+    query.push({ email });
+  }
+  if (phone) {
+    query.push({ phone });
+  }
   const existedUser = await User.findOne({
-    $or: [{ email }, { phone }],
+    $or: query,
   });
 
   if (existedUser) {
     throw new ApiError(
       409,
-      "User already with same email or phone number already exists."
+      "User with same email or phone number already exists."
     );
   }
   const createdUser = await User.create({
@@ -136,7 +141,7 @@ const getAccountDetails = asyncHandler(async (req, res) => {
 // update account details
 const updateAccountDetails = asyncHandler(async (req, res) => {
   const { _id } = req.user;
-  const { name, email, phone, avatar } = req.body;
+  const { name, email, phone } = req.body;
   // profile img path
   const avatarUrl = req.files?.avatar?.[0].path;
   const user = await User.findById(_id);
@@ -157,14 +162,17 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     updateParams = { ...updateParams, avatar: avatarUrl };
   }
 
-  // check if email already exists
-  if (user.email && email) {
-    throw new ApiError(400, "Email cannot be changed");
-  }
+  // if user is not admin
+  if (user.role !== "admin") {
+    // check if email already exists
+    if (user.email && email) {
+      throw new ApiError(400, "Email cannot be changed");
+    }
 
-  // check if phone number exists
-  if (user.phone && phone) {
-    throw new ApiError(400, "Phone number cannot be changed");
+    // check if phone number exists
+    if (user.phone && phone) {
+      throw new ApiError(400, "Phone number cannot be changed");
+    }
   }
 
   // update the user
@@ -238,7 +246,7 @@ const deleteAccount = asyncHandler(async (req, res) => {
   }
 
   await user.deleteOne();
-  deleteImage(avatar);
+  if (avatar) deleteImage(avatar);
   res.status(200).json(new ApiResponse(200, {}, "User deleted successfully"));
 });
 
