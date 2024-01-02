@@ -23,7 +23,9 @@ import adminRouter from "./routes/admin.route.js";
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/admin", adminRouter);
 app.get("/", (req, res) =>
-  res.status(200).json(`App is live, normal user: /api/v1/users `)
+  res
+    .status(200)
+    .json(`App is live, user: /api/v1/users; admin: /api/v1/admin `)
 );
 
 export default app;
