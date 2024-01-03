@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { verifyAdmin, verifyJWT } from "../middlewares/auth.middleware.js";
 import {
+  createAdmin,
   deleteUser,
   getUserById,
   getUsers,
@@ -8,6 +9,9 @@ import {
 } from "../controllers/admin.controller.js";
 
 const adminRouter = Router();
+
+// create an admin user
+adminRouter.post("/createAdmin", verifyJWT, verifyAdmin, createAdmin);
 
 // get users per page
 adminRouter.get("/users", verifyJWT, verifyAdmin, getUsers);

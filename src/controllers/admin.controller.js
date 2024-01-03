@@ -3,6 +3,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import deleteImage from "../utils/deleteImage.js";
+import { isEmailFormatCorrect } from "../utils/validation.js";
 
 // get users per page
 const getUsers = asyncHandler(async (req, res) => {
@@ -97,4 +98,73 @@ const modifyUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { user: updatedUser }, "Modified successfully"));
 });
 
-export { getUsers, getUserById, deleteUser, modifyUser };
+// create admin account
+const createAdmin = asyncHandler(async (req, res) => {
+  const { name, email, password, phone } = req.body;
+
+  // profile img path
+  const avatarUrl = req.files?.avatar?.[0].path;
+
+  // delete file if error occured
+  req.errCb = () => {
+    if (!avatarUrl) return;
+    deleteImage(avatarUrl);
+  };
+
+  // validate required fields
+  if ([name, password].some((i) => !i || i.trim() == "")) {
+    throw new ApiError(400, "Name and Password is required.");
+  }
+
+  // validate email if exist
+  if (email && !isEmailFormatCorrect(email)) {
+    throw new ApiError(400, "Email format is not correct.");
+  }
+
+  // check at least email or phone no. exist
+  if (!email && !phone) {
+    throw new ApiError(400, "Email or Phone number is required");
+  }
+
+  // check if user exists wtih same phone or email
+  let query = [];
+  if (email) {
+    query.push({ email });
+  }
+  if (phone) {
+    query.push({ phone });
+  }
+  const existedUser = await User.findOne({
+    $or: query,
+  });
+
+  if (existedUser) {
+    throw new ApiError(
+      409,
+      "User with same email or phone number already exists."
+    );
+  }
+  const createdUser = await User.create({
+    name,
+    email,
+    phone,
+    password,
+    avatar: avatarUrl || "",
+    role: "admin",
+  });
+
+  const user = await User.findById(createdUser._id).select("-password");
+
+  if (!createdUser || !user) {
+    throw new ApiError(
+      500,
+      "Something went wrong while creating the admin user."
+    );
+  }
+
+  res
+    .status(201)
+    .json(new ApiResponse(200, { user }, "Admin user created successfully"));
+});
+
+export { getUsers, getUserById, deleteUser, modifyUser, createAdmin };
