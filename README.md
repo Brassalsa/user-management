@@ -46,8 +46,27 @@ Read docs [here](https://expressjs.com/)
 
 ### User
 
-Users can change their name, password and profile image, enter their email or phone number if not provided when regestering but once email and phone number is provided it cannot be changed.
+Users can change their name, password and profile image, enter their email or phone number (if not provided) when regestering but once email and phone number is provided it cannot be changed.
 
 ### Admin
 
 Admin users can view, modify and delete users. They can also change their and other user's email and phone number also they can promote normal users to admin. Admin users cannot change other admin user's details.
+
+## API's
+
+### User: /api/v1/users
+
+- Register user (post): /register
+- Login (post): /login
+- Account Details (get): /account
+- Account update (put): /account
+- Change Password (post): /account/change-password
+- Delete Account (delete): /account
+
+### Admin: /api/v1/admin
+
+- Create admin account (post): /createAdmin
+- Get Users per page (get): /users?page=1&limit=10 (queries value can be any number)
+- Get user by id (get): /user?userId=abc123 (queries value can be any id)
+- Modify user details (put): /user?userId=abc123 (queries value can be any id)
+- Delete user (delete): /user?userId=abc123 (queries value can be any id)
