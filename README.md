@@ -2,7 +2,7 @@
 
 ## Introduction
 
-User Management system is a simple REST node application, made with express.js, mongoDB and more, that allows user to make an account with their email or phone number(required one of these), name and password(required), also upload their profile image.
+User Management system is a REST node application, made with express.js, mongoDB and more, that allows user to make an account with their email or phone number(required one of these), name and password(required), also upload their profile image.
 
 ## Installation
 
