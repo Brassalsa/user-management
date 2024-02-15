@@ -9,6 +9,7 @@ User Management system is a REST node application, made with express.js, mongoDB
 Install all the dependencies with npm.
 
 ```
+git clone https://github.com/Brassalsa/user-management/
 npm i
 ```
 
